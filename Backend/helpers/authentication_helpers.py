@@ -1,12 +1,13 @@
 import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-from fastapi import Depends, HTTPException, status
-
-
+from fastapi import Depends, HTTPException, status, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from ..config.database import get_db, User
 import os
 from dotenv import load_dotenv
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -51,3 +52,15 @@ def verify_access_token(token: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
         )
+
+
+
+
+async def get_current_user(request: Request, db : AsyncSession = Depends(get_db)):
+    token = request.cookies.get("access_token")
+    username = verify_access_token(token)["username"]
+    user = await db.execute(select(User).where(User.username == username))
+    user = user.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail = "Invalid Cookie")
+    return user
