@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from .routes import login, contacts
+from .routes import login, contacts, users
 from .config.database import init_db
 app = FastAPI()
 
 app.include_router(login.router)
 app.include_router(contacts.router)
+app.include_router(users.router)
 
 
 

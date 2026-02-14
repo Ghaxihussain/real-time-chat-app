@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
@@ -17,8 +17,8 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-    sender_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    receiver_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    sender_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
 
 
 
@@ -28,6 +28,7 @@ class User(Base):
     username = Column(String, nullable=False)
     name = Column(String, nullable=False)
     password = Column(String, nullable=False)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now)
 
 
@@ -40,6 +41,7 @@ class Contact(Base):
 
 async def init_db():
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 
