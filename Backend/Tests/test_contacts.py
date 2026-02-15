@@ -1,149 +1,86 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-from Backend.main import app  
+from Backend.main import app
 from Backend.helpers.authentication_helpers import create_access_token
 import uuid
-transport = ASGITransport(app = app)
+import pytest_asyncio
+transport = ASGITransport(app=app)
 BASE_URL = "http://test"
 
 
-# basic follow test — two fresh users, user1 follows user2, should work fine
-@pytest.mark.asyncio
-async def test_contact():
-    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
-        
-        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
-        user2_username = f"testuser_{uuid.uuid4().hex[:8]}"
-
-        user1 = await client.post("/auth/signup", json={
-            "username": user1_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-       
-        user2 = await client.post("/auth/signup", json={
-            "username": user2_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-
-        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
-        client.cookies.set("access_token", TOKEN)
-
-        add_contact = await client.post(f"/contacts/{user2_username}/follow")
-        
-        assert add_contact.status_code == 201
+async def create_user(client):
+    username = f"testuser_{uuid.uuid4().hex[:8]}"
+    await client.post("/auth/signup", json={
+        "username": username,
+        "name": "Test User",
+        "password": "test123"
+    })
+    return username
 
 
-# duplicate follow test — user1 tries to follow user2 twice, second attempt should be rejected with 409
-@pytest.mark.asyncio
-async def test_duplicate_contact():
-    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
-        
-        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
-        user2_username = f"testuser_{uuid.uuid4().hex[:8]}"
-
-        user1 = await client.post("/auth/signup", json={
-            "username": user1_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-       
-        user2 = await client.post("/auth/signup", json={
-            "username": user2_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-
-        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
-        client.cookies.set("access_token", TOKEN)
-
-        contect_first = await client.post(f"/contacts/{user2_username}/follow")
-        contact_second = await client.post(f"/contacts/{user2_username}/follow")
-        
-        assert contact_second.status_code == 409
+def auth_as(client, username):
+    token = create_access_token({"username": username, "name": "Test User"})
+    client.cookies.set("access_token", token)
 
 
-# self follow test — user tries to follow themselves, should be blocked with 400
-@pytest.mark.asyncio
-async def test_self_contact():
-    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
-        
-        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
-
-        user1 = await client.post("/auth/signup", json={
-            "username": user1_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-
-        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
-        client.cookies.set("access_token", TOKEN)
-
-        add_contact = await client.post(f"/contacts/{user1_username}/follow")
-        
-        assert add_contact.status_code == 201
-
-
-# unknown user test — trying to follow someone who doesnt exist, should return 404
-@pytest.mark.asyncio
-async def test_unknown_contact():
-    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
-        
-        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
-
-        user1 = await client.post("/auth/signup", json={
-            "username": user1_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-
-        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
-        client.cookies.set("access_token", TOKEN)
-
-        add_contact = await client.post(f"/contacts/unknown/follow")
-        
-        assert add_contact.status_code == 404
+@pytest_asyncio.fixture
+async def client():
+    async with AsyncClient(transport=transport, base_url=BASE_URL) as c:
+        yield c
 
 
 @pytest.mark.asyncio
-async def test_get_contacts():
-    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
-        
-        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
-        user2_username = f"testuser_{uuid.uuid4().hex[:8]}"
-        user3_username = f"testuser_{uuid.uuid4().hex[:8]}"
+async def test_contact(client):
+    user1 = await create_user(client)
+    user2 = await create_user(client)
+    auth_as(client, user1)
+
+    res = await client.post(f"/contacts/{user2}/follow")
+    assert res.status_code == 201
 
 
+@pytest.mark.asyncio
+async def test_duplicate_contact(client):
+    user1 = await create_user(client)
+    user2 = await create_user(client)
+    auth_as(client, user1)
+
+    await client.post(f"/contacts/{user2}/follow")
+    res = await client.post(f"/contacts/{user2}/follow")
+    assert res.status_code == 409
 
 
-        user1 = await client.post("/auth/signup", json={
-            "username": user1_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-       
-        user2 = await client.post("/auth/signup", json={
-            "username": user2_username,
-            "name": "Test User",
-            "password": "test123"
-        })
-        user3 = await client.post("/auth/signup", json={
-            "username": user3_username,
-            "name": "Test User",
-            "password": "test123"
-        })
+@pytest.mark.asyncio
+async def test_self_contact(client):
+    user1 = await create_user(client)
+    auth_as(client, user1)
 
-        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
-        client.cookies.set("access_token", TOKEN)
-
-        contect_user1_user2 = await client.post(f"/contacts/{user2_username}/follow")
-        contact_user1_user3 = await client.post(f"/contacts/{user3_username}/follow")
+    res = await client.post(f"/contacts/{user1}/follow")
+    assert res.status_code == 201
 
 
-        user1_contacts = await client.get("/contacts/")
-        data = user1_contacts.json()
-        assert len(data) == 2
-        usernames = [c["username"] for c in data]
-        assert user2_username in usernames
-        assert user3_username in usernames
+@pytest.mark.asyncio
+async def test_unknown_contact(client):
+    user1 = await create_user(client)
+    auth_as(client, user1)
+
+    res = await client.post(f"/contacts/unknown/follow")
+    assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_contacts(client):
+    user1 = await create_user(client)
+    user2 = await create_user(client)
+    user3 = await create_user(client)
+    auth_as(client, user1)
+
+    await client.post(f"/contacts/{user2}/follow")
+    await client.post(f"/contacts/{user3}/follow")
+
+    res = await client.get("/contacts/")
+    data = res.json()
+    assert len(data) == 2
+    usernames = [c["username"] for c in data]
+    assert user2 in usernames
+    assert user3 in usernames
