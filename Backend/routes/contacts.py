@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from Backend.helpers.contact_query import insert_contact
+from Backend.helpers.message_query import get_all_contacts
 from Backend.helpers.user_query import get_user_from_db
-from ..config.database import Contact, User, get_db
-from sqlalchemy.ext.asyncio import AsyncSession
+from ..config.database import User
 from ..helpers.authentication_helpers import get_current_user
 from sqlalchemy import select
 router = APIRouter(tags = ["Contacts"], prefix = "/contacts")
@@ -22,3 +22,12 @@ async def create_contact(username: str, current_user: User = Depends(get_current
 
     if not res: raise HTTPException(status_code= status.HTTP_409_CONFLICT,  detail = "Contact Already exists")
     return JSONResponse(content=f"Now following {username}", status_code=status.HTTP_201_CREATED)
+
+
+
+
+@router.get("/")
+async def get_current_user_contacts(current_user: User = Depends(get_current_user)):
+    res = await get_all_contacts(current_user.id)
+    d_res = [{"id": user.id, "username": user.username, "name": user.name} for user in res]
+    return d_res

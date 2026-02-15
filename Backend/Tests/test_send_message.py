@@ -28,6 +28,5 @@ async def test_contact():
         TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
         client.cookies.set("access_token", TOKEN)
 
-
         msg = await client.post(f"/messages/{user2_username}", json= {"content": "Hello"})
         assert msg.status_code == 201

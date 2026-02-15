@@ -104,3 +104,46 @@ async def test_unknown_contact():
         add_contact = await client.post(f"/contacts/unknown/follow")
         
         assert add_contact.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_contacts():
+    async with AsyncClient(transport=transport, base_url = BASE_URL) as client:
+        
+        user1_username = f"testuser_{uuid.uuid4().hex[:8]}"
+        user2_username = f"testuser_{uuid.uuid4().hex[:8]}"
+        user3_username = f"testuser_{uuid.uuid4().hex[:8]}"
+
+
+
+
+        user1 = await client.post("/auth/signup", json={
+            "username": user1_username,
+            "name": "Test User",
+            "password": "test123"
+        })
+       
+        user2 = await client.post("/auth/signup", json={
+            "username": user2_username,
+            "name": "Test User",
+            "password": "test123"
+        })
+        user3 = await client.post("/auth/signup", json={
+            "username": user3_username,
+            "name": "Test User",
+            "password": "test123"
+        })
+
+        TOKEN = create_access_token({"username": user1_username, "name": "Test User"})
+        client.cookies.set("access_token", TOKEN)
+
+        contect_user1_user2 = await client.post(f"/contacts/{user2_username}/follow")
+        contact_user1_user3 = await client.post(f"/contacts/{user3_username}/follow")
+
+
+        user1_contacts = await client.get("/contacts/")
+        data = user1_contacts.json()
+        assert len(data) == 2
+        usernames = [c["username"] for c in data]
+        assert user2_username in usernames
+        assert user3_username in usernames
