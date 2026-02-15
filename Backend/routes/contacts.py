@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-
 from Backend.helpers.contact_query import insert_contact
-from Backend.helpers.message_query import get_all_contacts
+from Backend.helpers.contact_query import get_all_contacts
 from Backend.helpers.user_query import get_user_from_db
 from ..config.database import User
 from ..helpers.authentication_helpers import get_current_user

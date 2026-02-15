@@ -44,7 +44,8 @@ async def signin(user_input: SignIn, response: Response, db: AsyncSession = Depe
     
     token = create_access_token({
         "username": user.username,
-        "name": user.name
+        "name": user.name,
+        "id" : user.id
     })
     response.set_cookie(
         key="access_token",
@@ -57,3 +58,8 @@ async def signin(user_input: SignIn, response: Response, db: AsyncSession = Depe
     return {"message": "Logged in"}
     
 
+@router.post("/logout")
+async def logout():
+    res = JSONResponse(content="Logged out", status_code=200)
+    res.delete_cookie("access_token")
+    return res

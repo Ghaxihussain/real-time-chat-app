@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>WebSocket Test</h2>
+    
+    <div>
+        <h3>1. Login first</h3>
+        <input id="username" placeholder="username" />
+        <input id="password" placeholder="password" />
+        <button onclick="login()">Login</button>
+        <p id="login-status"></p>
+    </div>
+
+    <div>
+        <h3>2. Connect WebSocket</h3>
+        <button onclick="connectWS()">Connect</button>
+        <p id="ws-status">Not connected</p>
+    </div>
+
+    <div>
+        <h3>3. Incoming Messages</h3>
+        <div id="messages" style="border:1px solid black; padding:10px; min-height:100px;"></div>
+    </div>
+
+    <script>
+        const BASE = "http://localhost:7000";
+
+        async function login() {
+            const res = await fetch(`${BASE}/auth/signin`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value
+                })
+            });
+            document.getElementById("login-status").textContent = 
+                res.ok ? "Logged in!" : "Login failed";
+        }
+
+        function connectWS() {
+            const ws = new WebSocket(`ws://localhost:7000/ws/`);
+
+            ws.onopen = () => {
+                document.getElementById("ws-status").textContent = "Connected!";
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                document.getElementById("messages").innerHTML += 
+                    `<p><b>${data.from}:</b> ${data.content}</p>`;
+            };
+
+            ws.onclose = () => {
+                document.getElementById("ws-status").textContent = "Disconnected";
+            };
+        }
+    </script>
+</body>
+</html>

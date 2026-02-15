@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from starlette.responses import Content
-
-from Backend.helpers.contact_query import insert_contact
+from ..helpers.web_socket_manager import manager
+from Backend.helpers.contact_query import get_all_contacts, get_all_last_msgs, insert_contact
 from ..config.database import get_db, User, Contact, Message
 from ..schemas.messages_schemas import SendMessage
 from ..helpers.authentication_helpers import get_current_user
@@ -22,6 +22,11 @@ async def send_msg(username: str, message : SendMessage, current_user : User = D
     await insert_contact(current_user.id, reciever.id) # insert the contact before sending the msg, so that we can have a record
     await insert_contact(reciever.id,current_user.id) # should be in both diorection, becouse of the receiver should also recieve the nsgs
     await insert_message(sender_id = current_user.id, receiver_id = reciever.id, content=message.content)
+    await manager.send_to_user(reciever.id, {
+        "type": "new_message",
+        "from": current_user.username,
+        "content": message.content
+    })
     return JSONResponse(content = "Message sent", status_code= 201)
     
 
@@ -39,3 +44,20 @@ async def get_contact_chat(username: str, offset:int, limit: int, current_user: 
 
 
     return chat
+
+
+
+
+@router.get("/")
+async def get_converstaion(current_user: User = Depends(get_current_user)):
+    data = [
+        {
+            "username": user.username,
+            "name": user.name,
+            "last_message" : user.content,
+            "created_at" : user.created_at,
+            "sent" : user.sent
+        } 
+        for user in await get_all_last_msgs(current_user.id)]
+    return data
+
