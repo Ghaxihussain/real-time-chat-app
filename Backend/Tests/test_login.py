@@ -1,17 +1,8 @@
 import pytest
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from Backend.main import app
 import uuid
-
-transport = ASGITransport(app=app)
-BASE_URL = "http://test"
+from .helpers import client
 
 
-@pytest_asyncio.fixture
-async def client():
-    async with AsyncClient(transport=transport, base_url=BASE_URL) as c:
-        yield c
 
 
 async def signup(client, username=None, name="Test User", password="test123"):

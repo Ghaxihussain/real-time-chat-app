@@ -4,29 +4,8 @@ from Backend.main import app
 from Backend.helpers.authentication_helpers import create_access_token
 import uuid
 import pytest_asyncio
-transport = ASGITransport(app=app)
-BASE_URL = "http://test"
+from .helpers import client, create_user, auth_as
 
-
-async def create_user(client):
-    username = f"testuser_{uuid.uuid4().hex[:8]}"
-    await client.post("/auth/signup", json={
-        "username": username,
-        "name": "Test User",
-        "password": "test123"
-    })
-    return username
-
-
-def auth_as(client, username):
-    token = create_access_token({"username": username, "name": "Test User"})
-    client.cookies.set("access_token", token)
-
-
-@pytest_asyncio.fixture
-async def client():
-    async with AsyncClient(transport=transport, base_url=BASE_URL) as c:
-        yield c
 
 
 @pytest.mark.asyncio
