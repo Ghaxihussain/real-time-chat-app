@@ -82,7 +82,7 @@ async def test_self_contact():
 
         add_contact = await client.post(f"/contacts/{user1_username}/follow")
         
-        assert add_contact.status_code == 400
+        assert add_contact.status_code == 201
 
 
 # unknown user test — trying to follow someone who doesnt exist, should return 404

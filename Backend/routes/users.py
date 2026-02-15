@@ -16,3 +16,5 @@ async def delete_user(current_user=Depends(get_current_user), db: AsyncSession =
     current_user.password = ""
     await db.commit()
     return JSONResponse(content="User deleted", status_code=200)
+
+
