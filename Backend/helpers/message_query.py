@@ -2,7 +2,7 @@ from _pytest._code.code import TracebackStyle
 from fastapi import status, HTTPException
 from fastapi.responses import JSONResponse
 from ..config.database import User, async_session
-from sqlalchemy import select, insert, join
+from sqlalchemy import select, insert, join, or_
 from ..config.database import Message
 from ..config.database import Contact
 
@@ -27,3 +27,15 @@ async def get_all_contacts(user_id):
     return contacts
 
 
+async def get_chat(sender_id, receiver_id, offset=0, limit=20):
+    async with async_session() as session:
+        result = await session.execute(select(Message).where(or_(
+        (Message.sender_id == sender_id) & (Message.receiver_id == receiver_id),
+        (Message.sender_id == receiver_id) & (Message.receiver_id == sender_id),)
+        )
+        .order_by(Message.created_at)
+        .offset(offset)
+        .limit(limit)
+        )
+    return result.scalars().all()
+        
