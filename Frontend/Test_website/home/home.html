@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="home.css">
+</head>
+<body>
+
+    <aside class="panel panel-left">
+        <div class="panel-header">
+            <span class="app-title">CHATS</span>
+            <button class="icon-btn" id="logout-btn" title="Logout">⏻</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search-contacts" placeholder="Search contacts...">
+        </div>
+
+        <ul class="contact-list" id="contact-list"></ul>
+    </aside>
+
+    <main class="panel panel-chat">
+        <div class="panel-header chat-header">
+            <div class="chat-user">
+                <div class="contact-avatar small"></div>
+                <span class="chat-username">Select a chat</span>
+            </div>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="chat-input-bar">
+            <textarea id="msg-input" placeholder="Type a message..." rows="1"></textarea>
+            <button class="send-btn" id="send-btn">SEND</button>
+        </div>
+    </main>
+
+    <aside class="panel panel-right">
+        <div class="panel-header">
+            <span class="app-title">ADD CONTACT</span>
+        </div>
+
+        <div class="add-contact-section">
+            <p class="section-desc">Send a follow request by username</p>
+            <div class="add-contact-form">
+                <input type="text" id="add-username" placeholder="Enter username...">
+                <button class="submit-btn" id="follow-btn">FOLLOW</button>
+            </div>
+            <div id="follow-status" class="status-msg"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="panel-header sub-header">
+            <span class="app-title">MY CONTACTS</span>
+        </div>
+
+        <ul class="contact-list compact" id="right-contact-list"></ul>
+    </aside>
+
+    <script>
+        const msgInput = document.getElementById('msg-input');
+        msgInput.addEventListener('input', function () {
+            this.style.overflowY = 'hidden';
+            this.style.height = 'auto';
+            if (this.scrollHeight > 150) {
+                this.style.height = '150px';
+                this.style.overflowY = 'auto';
+            } else {
+                this.style.height = this.scrollHeight + 'px';
+            }
+        });
+    </script>
+    <script src="home.js"></script>
+</body>
+</html>
