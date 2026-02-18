@@ -222,13 +222,13 @@ body {
     background: #fafafa;
 }
 
+
+
 .msg {
-    max-width: 65%;
-    padding: 10px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    border: 1.5px solid #000;
-    position: relative;
+    max-width: 70%;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border: 1px solid #000;
 }
 
 .msg.sent {
@@ -244,13 +244,11 @@ body {
 }
 
 .msg-time {
-    display: block;
     font-size: 10px;
+    opacity: 0.6;
+    display: block;
     margin-top: 4px;
-    opacity: 0.5;
-    text-align: right;
 }
-
 
 .chat-input-bar {
     display: flex;

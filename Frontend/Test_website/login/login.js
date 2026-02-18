@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000"; 
+const API_BASE = "http://localhost:7000"; 
 
 function showTab(tab) {
     document.getElementById("error").textContent = "";
@@ -31,7 +31,7 @@ async function handleLogin(e) {
         });
 
         if (res.ok) {
-            window.location.href = "http://localhost:8000/static/home/home.html";
+            window.location.href = "http://localhost:7000/static/home/home.html";
         } else {
             const data = await res.json();
             document.getElementById("error").textContent = data.detail || "Login failed";
@@ -64,7 +64,7 @@ async function handleSignup(e) {
             });
 
             if (loginRes.ok) {
-                window.location.href = "http://localhost:8000/static/home/home.html"
+                window.location.href = "http://localhost:7000/static/home/home.html"
             } else {
                 showTab("login");
                 document.getElementById("error").textContent = "Signup successful! Please login.";
