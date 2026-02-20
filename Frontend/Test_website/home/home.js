@@ -64,8 +64,10 @@ function renderConversations(filter = "") {
     }
 
     list.innerHTML = filtered.map(c => `
-        <li class="contact-item ${activeChat === c.username ? 'active' : ''}" 
-            onclick="openChat('${c.username}', '${c.name}')">
+        <li class="contact-item ${activeChat && activeChat.username === c.username ? 'active' : ''}" 
+            data-username="${c.username}"
+            data-name="${c.name}"
+            onclick="openChat(this.dataset.username, this.dataset.name)">
             <div class="contact-avatar">${getInitials(c.name)}</div>
             <div class="contact-info">
                 <div class="contact-row">
@@ -76,6 +78,8 @@ function renderConversations(filter = "") {
             </div>
         </li>
     `).join("");
+
+    applyOnlineStatuses();
 }
 
 
@@ -107,81 +111,26 @@ function renderContacts() {
     }
 
     list.innerHTML = contacts.map(c => `
-        <li class="contact-item-mini" onclick="openChat('${c.username}', '${c.name}')">
+        <li class="contact-item-mini"
+            data-username="${c.username}"
+            data-name="${c.name}"
+            onclick="openChat(this.dataset.username, this.dataset.name)">
             <div class="contact-avatar tiny">${getInitials(c.name)}</div>
             <span>${c.username}</span>
         </li>
     `).join("");
+
+    applyOnlineStatuses();
 }
 
-
-function openChat(username, name) {
-    activeChat = username;
-
-    document.querySelector(".chat-username").textContent = username;
-    document.querySelector(".chat-header .contact-avatar").textContent = getInitials(name);
-
-    renderConversations(document.getElementById("search-contacts").value);
-
-    document.getElementById("messages").innerHTML = `
-        <div class="empty-state">
-            <div class="empty-icon">◯</div>
-            <p>Start a conversation with ${username}</p>
-        </div>`;
-
-    document.getElementById("msg-input").focus();
-}
-
-
-async function sendMessage() {
-    const input = document.getElementById("msg-input");
-    const content = input.value.trim();
-
-    if (!content || !activeChat) return;
-
-    try {
-        const res = await fetch(`${API_BASE}/messages/${activeChat}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ content })
+function applyOnlineStatuses() {
+    if (typeof onlineUsers === "undefined") return;
+    onlineUsers.forEach(username => {
+        document.querySelectorAll(`[data-username="${username}"]`).forEach(el => {
+            el.classList.add("is-online");
         });
-
-        if (res.ok) {
-            const messagesDiv = document.getElementById("messages");
-
-            const emptyState = messagesDiv.querySelector(".empty-state");
-            if (emptyState) emptyState.remove();
-
-            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const msgEl = document.createElement("div");
-            msgEl.className = "msg sent";
-            msgEl.innerHTML = `<p>${content}</p><span class="msg-time">${now}</span>`;
-            messagesDiv.appendChild(msgEl);
-
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-            input.value = "";
-            input.style.height = "auto";
-
-            loadConversations();
-        } else {
-            const data = await res.json();
-            console.error("Send failed:", data.detail);
-        }
-    } catch (err) {
-        console.error("Connection error:", err);
-    }
+    });
 }
-
-
-document.getElementById("send-btn").addEventListener("click", sendMessage);
-document.getElementById("msg-input").addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
 
 
 async function followUser() {
@@ -201,7 +150,7 @@ async function followUser() {
             status.textContent = `Followed ${username}!`;
             status.className = "status-msg success";
             input.value = "";
-            loadContacts(); 
+            loadContacts();
         } else {
             const data = await res.json();
             status.textContent = data.detail || "Follow failed";
@@ -228,7 +177,6 @@ async function logout() {
 document.getElementById("search-contacts").addEventListener("input", function () {
     renderConversations(this.value);
 });
-
 
 document.getElementById("follow-btn").addEventListener("click", followUser);
 document.getElementById("logout-btn").addEventListener("click", logout);

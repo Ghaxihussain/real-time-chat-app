@@ -6,7 +6,6 @@ let isLoadingMsgs = false;
 let hasMoreMsgs = true;
 
 
-
 function connectWebSocket() {
     socket = new WebSocket(`${WS_BASE}/ws/`);
 
@@ -16,15 +15,19 @@ function connectWebSocket() {
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
+        
         if (data.type === "new_message") {
+            console.log("[WS RAW]", event.data);
             if (activeChat && data.from === activeChat.username) {
-                appendMessage({ content: data.content, sent: false, created_at: new Date().toISOString() });
+                appendMessage({ content: data.content, sended: false, created_at: new Date().toISOString() });
             } else {
                 highlightConversation(data.from);
             }
 
             if (typeof loadConversations === "function") loadConversations();
+        }
+        else if (data.type === "status_change") {
+            setContactStatus(data.contact_id, data.status);
         }
     };
 
@@ -39,7 +42,22 @@ function connectWebSocket() {
     };
 }
 
+const onlineUsers = new Set();
 
+function setContactStatus(username, status) {
+    if (status === "online") {
+        onlineUsers.add(username);
+    } else {
+        onlineUsers.delete(username);
+    }
+    updateStatusDot(username, status);
+}
+
+function updateStatusDot(username, status) {
+    document.querySelectorAll(`[data-username="${username}"]`).forEach(el => {
+        el.classList.toggle("is-online", status === "online");
+    });
+}
 
 async function loadMessages(username, prepend = false) {
     if (isLoadingMsgs || !hasMoreMsgs) return;
@@ -47,7 +65,6 @@ async function loadMessages(username, prepend = false) {
 
     const messagesDiv = document.getElementById("messages");
 
-    // show loader at top
     let loader = document.getElementById("msg-loader");
     if (!loader) {
         loader = document.createElement("div");
@@ -87,7 +104,6 @@ async function loadMessages(username, prepend = false) {
         if (msgs.length < MSG_LIMIT) hasMoreMsgs = false;
 
         const prevHeight = messagesDiv.scrollHeight;
-
 
         if (prepend) {
             msgs.forEach(msg => prependMessage(msg));
@@ -136,14 +152,12 @@ function openChat(username, name) {
 }
 
 
-
 function onMessagesScroll() {
     const messagesDiv = document.getElementById("messages");
     if (messagesDiv.scrollTop < 80 && hasMoreMsgs && activeChat) {
         loadMessages(activeChat.username, true);
     }
 }
-
 
 
 function appendMessage(msg) {
@@ -160,7 +174,6 @@ function appendMessage(msg) {
 function prependMessage(msg) {
     const messagesDiv = document.getElementById("messages");
     const el = createMsgEl(msg);
-    // insert after loader if present, else at top
     const loader = document.getElementById("msg-loader");
     if (loader) {
         loader.insertAdjacentElement("afterend", el);
@@ -200,7 +213,6 @@ function highlightConversation(username) {
 }
 
 
-
 async function sendMessage() {
     const input = document.getElementById("msg-input");
     const content = input.value.trim();
@@ -229,7 +241,6 @@ async function sendMessage() {
         console.error("Connection error:", err);
     }
 }
-
 
 
 document.getElementById("send-btn").addEventListener("click", sendMessage);

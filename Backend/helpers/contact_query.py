@@ -33,7 +33,12 @@ async def get_all_contacts(user_id):
         contacts = result.scalars().all()
     return contacts
 
-
+async def get_contact_python_list(user_id):
+    contacts = await get_all_contacts(user_id)
+    res = []
+    for contact in contacts:
+        res.append(contact.username)
+    return res
 
 
 async def get_all_last_msgs(user_id):

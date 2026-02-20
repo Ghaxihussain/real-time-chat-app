@@ -5,15 +5,30 @@ from .config.database import init_db
 from fastapi.staticfiles import StaticFiles
 from .helpers.authentication_helpers import get_password_hash
 from .config.database import async_session, User
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class CSPMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = (
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+        )
+        return response
+
 app = FastAPI()
+app.add_middleware(CSPMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["http://127.0.0.1:7000", "http://localhost:7000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/static", StaticFiles(directory="Frontend/static-test1"), name="static") ##
+app.mount("/static", StaticFiles(directory="Frontend/Test_website"), name="static") ##
+##
 app.include_router(login.router)
 app.include_router(contacts.router)
 app.include_router(users.router)

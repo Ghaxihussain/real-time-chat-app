@@ -14,6 +14,8 @@ router = APIRouter(tags = ["Contacts"], prefix = "/contacts")
  
 @router.post("/{username}/follow")
 async def create_contact(username: str, current_user: User = Depends(get_current_user)):
+    if username == current_user.username: 
+        raise HTTPException(status_code= status.HTTP_403_FORBIDDEN,  detail = "Cant send contact req to your self")
     reciever = await get_user_from_db(username = username)
     if reciever is None:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND,  detail = "{username} not found")
