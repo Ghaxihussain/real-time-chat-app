@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select, insert, or_, func
 from ..config.database import Contact, async_session, User, Message
 from sqlalchemy import or_, select, func, desc, case
-
-
+from ..config.redis import redis
+import json
 async def get_contact(sender, reciever):
     async with async_session() as session:
         result = await session.execute(select(Contact).where(Contact.user_id == sender, Contact.contact_id == reciever))
@@ -109,3 +109,21 @@ async def get_all_last_msgs(user_id):
 # SELECT u.username, l.content, is_deleted, created_at  from users u
 # JOIN last_msg l
 # ON u.id = l.contact
+
+
+async def get_cached_contacts(user_id: int):
+    key = f"contacts:{user_id}"
+    
+    cached = await redis.get(key)
+    if cached:
+        print(f"cached")
+        return json.loads(cached)
+    contacts = await get_all_contacts(user_id)
+    contacts_data = [{"id": c.id, "username": c.username, "name": c.name} for c in contacts]
+    await redis.setex(key, time = 5000, value = json.dumps(contacts_data),)
+    return contacts_data
+
+
+async def invalidate_contacts(user_id: int):
+    await redis.delete(f"contacts:{user_id}")
+    print(f"deleted")

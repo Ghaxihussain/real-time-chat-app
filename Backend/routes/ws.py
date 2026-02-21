@@ -21,14 +21,14 @@ async def ws_endpoint(wb: WebSocket):
         return
 
     await manager.connect(user["username"], wb)
-    contact_username= await get_contact_python_list(user["id"])
+    contact_usernames= await get_contact_python_list(user["id"])
 
-    print(f"[WS] User {user['username']} connected, contacts: {contact_username}") 
-    await manager.send_status(user["username"], contact_username, status="online")
+    print(f"[WS] User {user['username']} connected, contacts: {contact_usernames}") 
+    await manager.send_status(user["username"], contact_usernames, status="online")
     print("Hellow", manager.active_con)
     await asyncio.sleep(2)
 
-    for contact_username in contact_username:
+    for contact_username in contact_usernames:
         if contact_username in manager.active_con:
             await wb.send_json({
                 "type": "status_change",

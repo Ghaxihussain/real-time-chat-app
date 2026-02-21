@@ -37,13 +37,30 @@ app.include_router(ws.router)
 
 
 
+from .config.database import async_session, User, Contact, Message  # make sure Contact & Message are imported
+
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with async_session() as db:
-        user1= User(username="ghazihussainn", name="ghazi", password=get_password_hash("123"))
-        user2= User(username="syed", name="ghazi", password=get_password_hash("123"))
+       
+        user1 = User(username="ghazihussainn", name="Ghazi Hussein", password=get_password_hash("123"))
+        user2 = User(username="syed",          name="Syed Ali",      password=get_password_hash("123"))
+        user3 = User(username="sara",           name="Sara Khan",     password=get_password_hash("123"))
+        user4 = User(username="bilal",          name="Bilal Ahmed",   password=get_password_hash("123"))
 
-        db.add(user1)
-        db.add(user2)
+        db.add_all([user1, user2, user3, user4])
+        await db.flush()  
+
+      
+        contacts = [
+            Contact(user_id=user1.id, contact_id=user2.id),
+            Contact(user_id=user2.id, contact_id=user1.id),
+            Contact(user_id=user1.id, contact_id=user3.id),
+            Contact(user_id=user3.id, contact_id=user1.id),
+            Contact(user_id=user1.id, contact_id=user4.id),
+            Contact(user_id=user4.id, contact_id=user1.id),
+        ]
+        db.add_all(contacts)
+        await db.flush()
         await db.commit()

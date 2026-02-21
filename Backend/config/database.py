@@ -19,7 +19,7 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.now)
     sender_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
     receiver_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
-    read = Column(Boolean, default= False)
+   
 
 
 

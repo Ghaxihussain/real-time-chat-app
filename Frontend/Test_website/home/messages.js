@@ -128,7 +128,7 @@ async function loadMessages(username, prepend = false) {
 
 
 function openChat(username, name) {
-    activeChat = { username, name };
+    activeChat = {username, name};
 
     msgOffset = 0;
     hasMoreMsgs = true;

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from Backend.helpers.contact_query import insert_contact
+from Backend.helpers.contact_query import insert_contact, get_cached_contacts, invalidate_contacts
 from Backend.helpers.contact_query import get_all_contacts
 from Backend.helpers.user_query import get_user_from_db
 from ..config.database import User
@@ -20,7 +20,7 @@ async def create_contact(username: str, current_user: User = Depends(get_current
     if reciever is None:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND,  detail = "{username} not found")
     res = await insert_contact(sender_id= current_user.id, reciever_id= reciever.id)
-
+    await invalidate_contacts(current_user.id)
     if not res: raise HTTPException(status_code= status.HTTP_409_CONFLICT,  detail = "Contact Already exists")
     return JSONResponse(content=f"Now following {username}", status_code=status.HTTP_201_CREATED)
 
@@ -29,6 +29,5 @@ async def create_contact(username: str, current_user: User = Depends(get_current
 
 @router.get("/")
 async def get_current_user_contacts(current_user: User = Depends(get_current_user)):
-    res = await get_all_contacts(current_user.id)
-    d_res = [{"id": user.id, "username": user.username, "name": user.name} for user in res]
-    return d_res
+    res = await get_cached_contacts(current_user.id)
+    return res
