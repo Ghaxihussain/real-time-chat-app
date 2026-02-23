@@ -7,13 +7,8 @@ class ChatManager():
         self.active_con: dict[str, WebSocket] = {}
 
     async def connect(self, username, wb: WebSocket):
+        print(username)
         await wb.accept()
-        
-        if username in self.active_con:
-            try:
-                await self.active_con[username].close()
-            except:
-                pass
         self.active_con[username] = wb
 
     async def disconnect(self, username):

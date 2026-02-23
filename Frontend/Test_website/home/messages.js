@@ -32,8 +32,10 @@ function connectWebSocket() {
     };
 
     socket.onclose = (e) => {
-        console.warn("[WS] Disconnected, reconnecting in 3s...", e.code);
-        setTimeout(connectWebSocket, 3000);
+        console.warn("[WS] Disconnected", e.code);
+        if (e.code !== 1000) {  
+            setTimeout(connectWebSocket, 3000);
+        }
     };
 
     socket.onerror = (err) => {

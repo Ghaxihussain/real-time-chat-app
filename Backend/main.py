@@ -7,7 +7,7 @@ from .helpers.authentication_helpers import get_password_hash
 from .config.database import async_session, User
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-
+from .config.database import async_session, User, Contact, Message
 class CSPMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
@@ -36,8 +36,6 @@ app.include_router(messages.router)
 app.include_router(ws.router)
 
 
-
-from .config.database import async_session, User, Contact, Message  # make sure Contact & Message are imported
 
 @app.on_event("startup")
 async def startup():

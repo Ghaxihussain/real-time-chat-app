@@ -11,22 +11,15 @@ router = APIRouter(prefix="/ws")
 async def ws_endpoint(wb: WebSocket):
     token = wb.cookies.get("access_token")
     if not token:
-        await wb.close(code=1008)
         return
-
-    try:
-        user = verify_access_token(token)
-    except:
-        await wb.close(code=1008)
-        return
-
+    user = verify_access_token(token)
+    print(f"[WS] Token: {token}") 
     await manager.connect(user["username"], wb)
     contact_usernames= await get_contact_python_list(user["id"])
-
     print(f"[WS] User {user['username']} connected, contacts: {contact_usernames}") 
     await manager.send_status(user["username"], contact_usernames, status="online")
     print("Hellow", manager.active_con)
-    await asyncio.sleep(2)
+
 
     for contact_username in contact_usernames:
         if contact_username in manager.active_con:
@@ -40,7 +33,6 @@ async def ws_endpoint(wb: WebSocket):
             await wb.receive_json()
 
     except WebSocketDisconnect:
-        await asyncio.sleep(1)
 
         if manager.active_con.get(user["username"]) == wb:
             await manager.send_status(user["username"], contact_username, status="offline")

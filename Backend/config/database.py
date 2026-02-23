@@ -1,3 +1,4 @@
+import time
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
@@ -5,8 +6,11 @@ import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-load_dotenv()
-DATABASE_URL = os.getenv('DATABASE_URL')
+
+DATABASE_URL = "postgresql+asyncpg://myuser:mypassword@db:5432/chatdbdock"
+print("DATABASE_URL:", DATABASE_URL)
+time.sleep(3)
+
 engine = create_async_engine(DATABASE_URL)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 class Base(DeclarativeBase):
@@ -49,6 +53,6 @@ async def init_db():
 async def get_db():
     async with async_session() as session:
         yield session
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 
