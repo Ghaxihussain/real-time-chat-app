@@ -19,10 +19,9 @@ class CSPMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI()
 app.add_middleware(CSPMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://your-app.up.railway.app", "wss://your-app.up.railway.app"],
+    allow_origins=["https://real-time-chat-app-production-6480.up.railway.app", "wss://real-time-chat-app-production-6480.up.railway.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,4 +1,4 @@
-const WS_BASE = "wss://your-app.up.railway.app";
+const WS_BASE = "wss://real-time-chat-app-production-6480.up.railway.app";
 let socket = null;
 let msgOffset = 0;
 const MSG_LIMIT = 20;

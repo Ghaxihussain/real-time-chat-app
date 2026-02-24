@@ -1,4 +1,4 @@
-const API_BASE = "https://your-app.up.railway.app"; 
+const API_BASE = "https://real-time-chat-app-production-6480.up.railway.app"; 
 
 function showTab(tab) {
     document.getElementById("error").textContent = "";
