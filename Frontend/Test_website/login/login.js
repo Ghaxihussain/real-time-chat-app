@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:7000"; 
+const API_BASE = "https://your-app.up.railway.app"; 
 
 function showTab(tab) {
     document.getElementById("error").textContent = "";

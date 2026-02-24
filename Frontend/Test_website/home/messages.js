@@ -1,4 +1,4 @@
-const WS_BASE = "ws://localhost:7000";
+const WS_BASE = "wss://your-app.up.railway.app";
 let socket = null;
 let msgOffset = 0;
 const MSG_LIMIT = 20;
