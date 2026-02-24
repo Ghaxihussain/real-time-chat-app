@@ -31,7 +31,7 @@ async function handleLogin(e) {
         });
 
         if (res.ok) {
-            window.location.href = "http://localhost:7000/static/home/home.html";
+            window.location.href = "https://real-time-chat-app-production-6480.up.railway.app/static/home/home.html";
         } else {
             const data = await res.json();
             document.getElementById("error").textContent = data.detail || "Login failed";
