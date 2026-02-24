@@ -6,8 +6,8 @@ import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-
-DATABASE_URL = "postgresql+asyncpg://myuser:mypassword@db:5432/chatdbdock"
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://myuser:mypassword@db:5432/chatdbdock")
 print("DATABASE_URL:", DATABASE_URL)
 time.sleep(3)
 
